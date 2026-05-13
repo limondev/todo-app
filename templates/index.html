@@ -18,6 +18,8 @@
             border: none;
             border-radius: 15px;
             color: #000000 !important;
+            position: relative;
+            z-index: 1;
         }
 
         .todo-card { transition: all 0.2s; }
@@ -35,146 +37,183 @@
 
         .btn-theme-toggle { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; border-radius: 50%; z-index: 1000; }
         .text-black-custom { color: #000000 !important; }
+
+        .container {
+            position: relative;
+            z-index: auto !important;
+        }
+
         .side-image {
             position: fixed;
-            up: 20px;
+            top: 50%;
             left: 20px;
-            width: 750px;
-            z-index: 1;
-            opacity: 0.9;
+            transform: translateY(-50%);
+            width: 25vw;
+            max-width: 500px;
+            z-index: -1;
+            opacity: 0.5;
             pointer-events: none;
-    }
-input[type="datetime-local"] {
-    color-scheme: light;
-    position: relative;
-    padding-left: 45px !important;
-}
+        }
 
-/* Переміщуємо стандартну іконку календаря вліво */
-input[type="datetime-local"]::-webkit-calendar-picker-indicator {
-    position: absolute;
-    left: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    margin: 0;
-    cursor: pointer;
-    /* Якщо хочеш зробити іконку ще чіткішою, можна додати фільтр: */
-    filter: invert(0);
-}
+        input[type="datetime-local"] {
+            color-scheme: light;
+            position: relative;
+            padding-left: 45px !important;
+        }
 
-/* Приховуємо картинку на маленьких екранах (телефонах), щоб не заважала */
-@media (max-width: 1200px) {
-    .side-image { display: none; }
-}
+        input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            margin: 0;
+            cursor: pointer;
+            filter: invert(0);
+        }
+
+        .stats-sticky {
+            position: sticky;
+            top: 20px;
+            z-index: 10;
+        }
+
+        @media (max-width: 1200px) {
+            .side-image { display: none; }
+        }
     </style>
 </head>
 <body>
-<img src="/static/yebashit.png" class="side-image shadow-lg" alt="side decor">
-    <div class="container py-5" style="max-width: 800px;">
-        <div class="d-flex justify-content-between align-items-center mb-5">
-            <h1 class="fw-bold m-0 #000000">📋 TaskFlow</h1>
-            <div class="dropdown">
-                <button class="btn btn-dark dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                    Фільтр: {{ current_category if current_category else 'Всі' }}
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end shadow">
-                    <li><a class="dropdown-item" href="/">Всі категорії</a></li>
-                    <li><hr class="dropdown-divider"></li>
-                    {% for cat in all_categories %}
-                    <li><a class="dropdown-item" href="/?category={{ cat }}">{{ cat }}</a></li>
-                    {% endfor %}
-                </ul>
-            </div>
-        </div>
+    <img src="/static/yebashit.png" class="side-image shadow-lg" alt="side decor">
 
-        <div class="card card-custom shadow p-4 mb-5">
-            <form action="/add" method="post" class="row g-3">
-                <div class="col-12">
-                    <label class="form-label">Назва завдання</label>
-                    <input type="text" name="title" class="form-control form-control-lg" placeholder="Що зробити?" required>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label">Дедлайн</label>
-                    <input type="datetime-local" name="deadline" class="form-control">
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Категорія</label>
-                    <input type="text" name="category" class="form-control" placeholder="Дім, Робота...">
-                </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary btn-lg w-100 shadow-sm">Додати</button>
-                </div>
-            </form>
-        </div>
-        <div class="todo-list">
-            {% for todo in todos %}
-            <div class="card card-custom todo-card shadow p-3 mb-3">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div class="d-flex align-items-center flex-grow-1">
-                     <a href="/switch/{{ todo.id }}" class="text-decoration-none fs-4 me-3">
-    {% if todo.status == 0 %}
-        <span title="Очікує">⭕</span>
-    {% elif todo.status == 1 %}
-        <span title="В процесі">⏳</span> {% else %}
-        <span title="Виконано">✅</span>
-    {% endif %}
-</a>
+    <div class="container py-5" style="max-width: 1200px;">
+        <div class="row">
 
-<div>
-    <h5 class="mb-1 fw-bold text-black-custom {{ 'completed-text' if todo.status == 2 else '' }}">
-        {{ todo.title }}
-    </h5>
-
-    {% if todo.status == 1 %}
-        <span class="badge bg-warning text-dark me-2">В процесі</span>
-    {% endif %}
-
-    <span class="badge bg-dark text-white me-2">{{ todo.category }}</span>
-
-    {% if todo.deadline %}
-        <small class="text-dark fw-semibold">📅 {{ todo.deadline.strftime('%d.%m, %H:%M') }}</small>
-    {% endif %}
-</div>
-                    </div>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-outline-dark btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#editModal{{ todo.id }}">Ред.</button>
-                        <a href="/delete/{{ todo.id }}" class="btn btn-danger btn-sm rounded-pill px-3">Видалити</a>
+            <div class="col-lg-8">
+                <div class="d-flex justify-content-between align-items-center mb-5">
+                    <h1 class="fw-bold m-0 text-white">📋 TaskFlow</h1>
+                    <div class="dropdown">
+                        <button class="btn btn-dark dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            Фільтр: {{ current_category if current_category else 'Всі' }}
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow">
+                            <li><a class="dropdown-item" href="/">Всі категорії</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            {% for cat in all_categories %}
+                            <li><a class="dropdown-item" href="/?category={{ cat }}">{{ cat }}</a></li>
+                            {% endfor %}
+                        </ul>
                     </div>
                 </div>
-            </div>
 
-            <div class="modal fade" id="editModal{{ todo.id }}" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content border-0 shadow-lg rounded-4 card-custom">
-                        <div class="modal-header border-0 pb-0">
-                            <h5 class="modal-title fw-bold">Редагувати</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <div class="card card-custom shadow p-4 mb-5">
+                    <form action="/add" method="post" class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label">Назва завдання</label>
+                            <input type="text" name="title" class="form-control form-control-lg" placeholder="Що зробити?" required>
                         </div>
-                        <form action="/update/{{ todo.id }}" method="post">
-                            <div class="modal-body p-4">
-                                <div class="mb-3">
-                                    <label class="form-label">Назва</label>
-                                    <input type="text" name="title" class="form-control" value="{{ todo.title }}" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Дедлайн</label>
-                                    <input type="datetime-local" name="deadline" class="form-control"
-                                           value="{{ todo.deadline.strftime('%Y-%m-%dT%H:%M') if todo.deadline else '' }}">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Категорія</label>
-                                    <input type="text" name="category" class="form-control" value="{{ todo.category }}">
+                        <div class="col-md-6">
+                            <label class="form-label">Дедлайн</label>
+                            <input type="datetime-local" name="deadline" class="form-control">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Категорія</label>
+                            <input type="text" name="category" class="form-control" placeholder="Дім, Робота...">
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary btn-lg w-100 shadow-sm">Додати</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Список справ -->
+                <div class="todo-list">
+                    {% for todo in todos %}
+                    <div class="card card-custom todo-card shadow p-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center flex-grow-1">
+                                <a href="/switch/{{ todo.id }}" class="text-decoration-none fs-4 me-3">
+                                    {% if todo.status == 0 %} <span title="Очікує">⭕</span>
+                                    {% elif todo.status == 1 %} <span title="В процесі">⏳</span>
+                                    {% else %} <span title="Виконано">✅</span> {% endif %}
+                                </a>
+                                <div>
+                                    <h5 class="mb-1 fw-bold text-black-custom {{ 'completed-text' if todo.status == 2 else '' }}">
+                                        {{ todo.title }}
+                                    </h5>
+                                    {% if todo.status == 1 %}
+                                        <span class="badge bg-warning text-dark me-2">В процесі</span>
+                                    {% endif %}
+                                    <span class="badge bg-dark text-white me-2">{{ todo.category }}</span>
+                                    {% if todo.deadline %}
+                                        <small class="text-dark fw-semibold">📅 {{ todo.deadline.strftime('%d.%m, %H:%M') }}</small>
+                                    {% endif %}
                                 </div>
                             </div>
-                            <div class="modal-footer border-0 pt-0">
-                                <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Скасувати</button>
-                                <button type="submit" class="btn btn-primary rounded-pill px-4">Зберегти</button>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-outline-dark btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#editModal{{ todo.id }}">Ред.</button>
+                                <a href="/delete/{{ todo.id }}" class="btn btn-danger btn-sm rounded-pill px-3">Видалити</a>
                             </div>
-                        </form>
+                        </div>
+                    </div>
+
+                    <div class="modal fade" id="editModal{{ todo.id }}" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content border-0 shadow-lg rounded-4 card-custom">
+                                <div class="modal-header border-0 pb-0">
+                                    <h5 class="modal-title fw-bold">Редагувати</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <form action="/update/{{ todo.id }}" method="post">
+                                    <div class="modal-body p-4">
+                                        <div class="mb-3">
+                                            <label class="form-label">Назва</label>
+                                            <input type="text" name="title" class="form-control" value="{{ todo.title }}" required>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Дедлайн</label>
+                                            <input type="datetime-local" name="deadline" class="form-control"
+                                                   value="{{ todo.deadline.strftime('%Y-%m-%dT%H:%M') if todo.deadline else '' }}">
+                                        </div>
+                                        <div class="mb-3">
+                                            <label class="form-label">Категорія</label>
+                                            <input type="text" name="category" class="form-control" value="{{ todo.category }}">
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer border-0 pt-0">
+                                        <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Скасувати</button>
+                                        <button type="submit" class="btn btn-primary rounded-pill px-4">Зберегти</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card card-custom shadow p-4 stats-sticky">
+                    <h4 class="fw-bold mb-4">Статистика</h4>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span>⭕ Очікує:</span>
+                        <span class="badge bg-dark fs-6 text-white">{{ stats.todo }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span>⏳ В процесі:</span>
+                        <span class="badge bg-warning text-dark fs-6">{{ stats.progress }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span>✅ Зроблено:</span>
+                        <span class="badge bg-success fs-6 text-white">{{ stats.done }}</span>
+                    </div>
+                    <hr class="text-dark">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="fw-bold">Всього:</span>
+                        <span class="fw-bold fs-5">{{ stats.todo + stats.progress + stats.done }}</span>
                     </div>
                 </div>
             </div>
-            {% endfor %}
+
         </div>
     </div>
 
@@ -184,7 +223,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
     <script>
         function updateStyles(theme) {
             const isDark = (theme === 'dark');
-           // document.body.style.backgroundColor = isDark ? '#adb5bd' : '#e9ecef';
+            document.body.style.backgroundColor = '#010214';
             const cards = document.querySelectorAll('.card-custom');
             cards.forEach(card => {
                 card.style.backgroundColor = isDark ? '#dee2e6' : '#ffffff';

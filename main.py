@@ -44,15 +44,24 @@ def home(request: Request, category: Optional[str] = None, db: Session = Depends
     if category:
         query = query.filter(TodoDB.category == category)
 
-    todos = query.order_by((TodoDB.status == 2).asc(), TodoDB.deadline.asc()).all()
+    todos = query.order_by(
+        (TodoDB.status == 2).asc(),
+        TodoDB.deadline.asc().nulls_last()
+    ).all()
+
+    stats = {
+        "todo": db.query(TodoDB).filter(TodoDB.status == 0).count(),
+        "progress": db.query(TodoDB).filter(TodoDB.status == 1).count(),
+        "done": db.query(TodoDB).filter(TodoDB.status == 2).count(),
+    }
 
     return templates.TemplateResponse("index.html", {
         "request": request,
         "todos": todos,
         "all_categories": all_categories,
-        "current_category": category
+        "current_category": category,
+        "stats": stats
     })
-
 
 @app.post("/add")
 def add_todo(
@@ -101,7 +110,6 @@ def update_todo(
     if not db_todo:
         raise HTTPException(status_code=404, detail="Завдання не знайдено")
 
-    # Оновлюємо поля
     db_todo.title = title
     db_todo.deadline = datetime.fromisoformat(deadline) if deadline else None
     db_todo.category = category if category and category.strip() else "Загальне"
